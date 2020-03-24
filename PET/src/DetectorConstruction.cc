@@ -176,7 +176,7 @@ G4LogicalVolume* DetectorConstruction::ConstructTeflonLayer()
    G4double halfLength = 5.3 *cm; 
    G4Tubs* solid = new G4Tubs("solid", rMin, rMax, halfLength, 0*deg, 360*deg);
    
-   G4Material* teflon = man->FindOrBuildMaterial("G4_TEFLON ");
+   G4Material* teflon = man->FindOrBuildMaterial("G4_TEFLON");
 
    
    G4LogicalVolume* teflonLogic = new G4LogicalVolume(solid, teflon,"teflonLogic");
