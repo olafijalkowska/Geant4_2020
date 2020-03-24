@@ -11,6 +11,7 @@
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4NistManager.hh"  //wbudowane materiały
+#include "G4Material.hh" //materiały
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -24,12 +25,16 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   private:
     G4LogicalVolume* worldLogic; //świat
     G4LogicalVolume* fantomLogVol;
-    G4LogicalVolume* theCylinderLogVol;
+    G4LogicalVolume* cylinderLogVol;
     G4NistManager* man;
     //G4VPhysicalVolume* worldPhys;
     G4VPhysicalVolume* ConstructWorld(); //metoda w której świat zostanie zbudowany
     void ConstructHumanFantom();
     void ConstructCylinder();
+    void ConstructNaIDet();
+    G4LogicalVolume* ConstructAluLayer();
+    G4LogicalVolume* ConstructTeflonLayer();
+    G4Material* MakeWater();
 
     
  
