@@ -21,7 +21,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     virtual void GeneratePrimaries(G4Event*);
 
   private:
-	void SetUpDefault();	
+	void SetUpDefault();
+	G4ThreeVector GenerateIsotropicDirection();
     G4ParticleGun* particleGun;
     G4ParticleTable* particleTable;
 

@@ -18,6 +18,8 @@
 #include "G4SDManager.hh"
 #include "G4PSEnergyDeposit.hh"
 
+#include "HumanFantom.hh"
+
 
 DetectorConstruction::DetectorConstruction()
 {
@@ -43,9 +45,11 @@ DetectorConstruction::~DetectorConstruction()
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     G4VPhysicalVolume* worldPhys = ConstructWorld();
-    ConstructHumanFantom();
+    //ConstructHumanFantom();
     ConstructCylinder();
     ConstructNaIDet();
+    //ConstructSpine();
+    
     return worldPhys;
 }
 
@@ -83,21 +87,13 @@ G4Material* DetectorConstruction::MakeWater()
 
 void DetectorConstruction::ConstructHumanFantom()
 {   
-    G4double radiusMin = 0;
     G4double radiusMax = 15*cm;
     G4double length = 170*cm;
-    G4Tubs* fantomSolid = new G4Tubs("fantomSolid", radiusMin, radiusMax, length/2., 0*deg, 360*deg);
-    G4Material* water = MakeWater();
-    fantomLogVol = new G4LogicalVolume(fantomSolid, water, "fantomLogVol");
+    HumanFantom *fantom = new HumanFantom(length, radiusMax);
 
-     
-    G4VisAttributes* fantomVisAtt = new G4VisAttributes( G4Colour(1,0.8,0.8));
-	fantomVisAtt->SetForceAuxEdgeVisible(true);// Can see outline when drawn with lines
-	//fantomVisAtt->SetForceSolid(true);
-	fantomLogVol->SetVisAttributes(fantomVisAtt);
-
-	G4ThreeVector pos(0,0,0);    
-	new G4PVPlacement(0, pos, fantomLogVol, "fantom", worldLogic, 0, 0);
+	G4ThreeVector pos(0,0,0); 
+	G4RotationMatrix *pRot = new G4RotationMatrix();
+	fantom->Place(0, pos, "fantom", worldLogic, 0); 
 	
 }
 
@@ -127,27 +123,28 @@ void DetectorConstruction::ConstructCylinder()
 //promień 3 cm
 //teflon 3 mm
 //aluminium 3 mm
+//delta 0.153294282 rad
 
 void DetectorConstruction::ConstructNaIDet()
 {
    G4LogicalVolume* aluLogic = ConstructAluLayer();
-   G4LogicalVolume* teflonLogic = ConstructTeflonLayer();    
-   G4ThreeVector pos(0,0,0); 
+   G4LogicalVolume* teflonLogic = ConstructTeflonLayer(); 
+   G4LogicalVolume* naiLogic = ConstructCrystal();   
+   G4ThreeVector pos(0,0,0);
+   new G4PVPlacement(0, pos, naiLogic, "naiPhys", teflonLogic, 0, 0);   
    new G4PVPlacement(0, pos, teflonLogic, "teflonPhys", aluLogic, 0, 0);
-   double ringRadius = 46.6*cm;
-   
-   G4ThreeVector naiDetPos(0,ringRadius,0);
-   G4RotationMatrix* rot = new G4RotationMatrix();
-   rot->rotateX(90*deg);
-   new G4PVPlacement(rot, naiDetPos, aluLogic, "aluPhys", cylinderLogVol, 0, 0);
-   
-   double angle=40*deg;
-   G4ThreeVector naiDetPos2(ringRadius*sin(angle),ringRadius*cos(angle),0);
-   G4RotationMatrix* rot2 = new G4RotationMatrix();
-   rot2->rotateZ(angle);
-   rot2->rotateX(90*deg);
-   new G4PVPlacement(rot2, naiDetPos2, aluLogic, "aluPhys", cylinderLogVol, 0, 1);
-   
+   int nrOfDet = 36;
+   double angle = 360./nrOfDet*deg;
+   double radius = 46.6*cm;
+   for(int i = 0; i !=36; ++i)
+   {
+       G4RotationMatrix* rot = new G4RotationMatrix();
+       //rot->rotateX(90*deg);
+       rot->rotateZ(angle*i);
+       rot->rotateX(90*deg);
+       G4ThreeVector detPos(radius*sin(angle*i),radius*cos(angle*i),0);
+       new G4PVPlacement(rot, detPos, aluLogic, "aluPhys", cylinderLogVol, 0, i);
+   }
 }
 
 G4LogicalVolume* DetectorConstruction::ConstructAluLayer()
@@ -180,11 +177,49 @@ G4LogicalVolume* DetectorConstruction::ConstructTeflonLayer()
 
    
    G4LogicalVolume* teflonLogic = new G4LogicalVolume(solid, teflon,"teflonLogic");
-   G4VisAttributes* visAttr = new G4VisAttributes(G4Colour(1,1,1));
+   G4VisAttributes* visAttr = new G4VisAttributes(G4Colour(1,1,1, 0.5));
    visAttr->SetForceSolid(true);
    visAttr->SetForceAuxEdgeVisible(true);
    teflonLogic->SetVisAttributes(visAttr);
    return teflonLogic;
+}
+
+G4LogicalVolume* DetectorConstruction::ConstructCrystal()
+{
+   G4double rMin = 0;
+   G4double rMax = 3. *cm;
+   G4double halfLength = 5. *cm; 
+   G4Tubs* crystal = new G4Tubs("crystal", rMin, rMax, halfLength, 0*deg, 360*deg);
+   
+   G4Material* nai = man->FindOrBuildMaterial("G4_SODIUM_IODIDE");
+
+   
+   G4LogicalVolume* naiLogic = new G4LogicalVolume(crystal, nai,"naiLogic");
+   G4VisAttributes* naiVis = new G4VisAttributes(G4Colour(1,1,0));
+   naiVis->SetForceSolid(true);
+   naiVis->SetForceAuxEdgeVisible(true);
+   naiLogic->SetVisAttributes(naiVis);
+   return naiLogic;
+}
+
+void DetectorConstruction::ConstructSpine()
+{
+   G4double rMin = 0;
+   G4double rMax = 3 *cm;
+   G4double halfLength = 85./2. *cm; 
+   G4Tubs* aluSolid = new G4Tubs("aluSolid", rMin, rMax, halfLength, 0*deg, 360*deg);
+   
+   G4Material* alu = new G4Material("aluminum", 2.7*g/cm3, 1);
+   G4Element* Al = man->FindOrBuildElement("Al");
+   alu->AddElement(Al, 1);
+   
+   G4LogicalVolume* aluLogic = new G4LogicalVolume(aluSolid, alu,"spineLogic");
+   G4VisAttributes* aluVis = new G4VisAttributes(G4Colour(1,1.,1));
+   //aluVis->SetForceSolid(true);
+   aluVis->SetForceAuxEdgeVisible(true);
+   aluLogic->SetVisAttributes(aluVis);
+   G4ThreeVector pos(0,10*cm,halfLength);
+   new G4PVPlacement(0, pos, aluLogic, "aluPhys", fantomLogVol, 0, 0);
 }
 
 void DetectorConstruction::ConstructSDandField() 

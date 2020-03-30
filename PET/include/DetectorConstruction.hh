@@ -34,6 +34,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void ConstructNaIDet();
     G4LogicalVolume* ConstructAluLayer();
     G4LogicalVolume* ConstructTeflonLayer();
+    G4LogicalVolume* ConstructCrystal();
+    void ConstructSpine();
     G4Material* MakeWater();
 
     

@@ -3,11 +3,12 @@
 //
 /// \file PrimaryGeneratorAction.cc
 /// \brief Implementation of the PrimaryGeneratorAction class
-
+#include <math.h>
 #include "PrimaryGeneratorAction.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
+#include "Randomize.hh"
 
 
 PrimaryGeneratorAction::PrimaryGeneratorAction() : G4VUserPrimaryGeneratorAction()
@@ -35,8 +36,19 @@ void PrimaryGeneratorAction::SetUpDefault()
 }
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
-{	
+{
+   	G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+	particleGun->SetParticleDefinition(particle);
+    particleGun->SetParticleMomentumDirection(GenerateIsotropicDirection());	
     particleGun->GeneratePrimaryVertex(anEvent);
 }	
 
+G4ThreeVector PrimaryGeneratorAction::GenerateIsotropicDirection()
+{
+   double cosTheta = 2.*G4UniformRand() - 1.;
+   double sinTheta = pow(1.-cosTheta*cosTheta, 0.5);
+   double phi = G4UniformRand()*2.*M_PI;
+   return G4ThreeVector(sinTheta*cos(phi), sinTheta*sin(phi), cosTheta);
+
+}
 
