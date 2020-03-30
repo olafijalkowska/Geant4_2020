@@ -45,10 +45,9 @@ DetectorConstruction::~DetectorConstruction()
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     G4VPhysicalVolume* worldPhys = ConstructWorld();
-    //ConstructHumanFantom();
+    ConstructHumanFantom();
     ConstructCylinder();
     ConstructNaIDet();
-    //ConstructSpine();
     
     return worldPhys;
 }
@@ -71,17 +70,6 @@ G4VPhysicalVolume* DetectorConstruction::ConstructWorld()
     //worldLogic->SetVisAttributes(G4VisAttributes::Invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(0, G4ThreeVector(), worldLogic, "world", 0, false, 0);
     return worldPhys;
-
-}
-
-G4Material* DetectorConstruction::MakeWater()
-{
-    G4Element* H = man->FindOrBuildElement("H");
-    G4Element* O = man->FindOrBuildElement("O");
-    G4Material* water = new G4Material("water", 1.0*g/cm3, 2);
-    water->AddElement(H, 2);
-    water->AddElement(O, 1);
-    return water;
 
 }
 
@@ -200,26 +188,6 @@ G4LogicalVolume* DetectorConstruction::ConstructCrystal()
    naiVis->SetForceAuxEdgeVisible(true);
    naiLogic->SetVisAttributes(naiVis);
    return naiLogic;
-}
-
-void DetectorConstruction::ConstructSpine()
-{
-   G4double rMin = 0;
-   G4double rMax = 3 *cm;
-   G4double halfLength = 85./2. *cm; 
-   G4Tubs* aluSolid = new G4Tubs("aluSolid", rMin, rMax, halfLength, 0*deg, 360*deg);
-   
-   G4Material* alu = new G4Material("aluminum", 2.7*g/cm3, 1);
-   G4Element* Al = man->FindOrBuildElement("Al");
-   alu->AddElement(Al, 1);
-   
-   G4LogicalVolume* aluLogic = new G4LogicalVolume(aluSolid, alu,"spineLogic");
-   G4VisAttributes* aluVis = new G4VisAttributes(G4Colour(1,1.,1));
-   //aluVis->SetForceSolid(true);
-   aluVis->SetForceAuxEdgeVisible(true);
-   aluLogic->SetVisAttributes(aluVis);
-   G4ThreeVector pos(0,10*cm,halfLength);
-   new G4PVPlacement(0, pos, aluLogic, "aluPhys", fantomLogVol, 0, 0);
 }
 
 void DetectorConstruction::ConstructSDandField() 
