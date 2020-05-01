@@ -12,6 +12,7 @@
 #include "G4VPrimitiveScorer.hh"
 #include "G4PSEnergyDeposit.hh"
 #include "G4SDManager.hh"
+#include "NaISD.hh"
 
 DetectorsRing::DetectorsRing()
 {
@@ -119,12 +120,12 @@ G4LogicalVolume* DetectorsRing::ConstructNaILayer()
 	G4Tubs* crystal = new G4Tubs("crystal", rMin, rMax, halfLength, 0*deg, 360*deg);
 	G4Material* NaI = MakeNaI();
 
-	G4LogicalVolume* NaILogic = new G4LogicalVolume(crystal, NaI, "NaILogic");
+	G4LogicalVolume* NaILogicLoc = new G4LogicalVolume(crystal, NaI, "NaILogic");
 	G4VisAttributes* vis = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
     vis->SetForceSolid(true);
     vis->SetForceAuxEdgeVisible(true);
-    NaILogic->SetVisAttributes(vis);
-    return NaILogic;
+    NaILogicLoc->SetVisAttributes(vis);
+    return NaILogicLoc;
 }
 
 void DetectorsRing::Pos(G4RotationMatrix *rotate, 
@@ -139,13 +140,20 @@ void DetectorsRing::Pos(G4RotationMatrix *rotate,
 
 void DetectorsRing::ConstructSDandField()
 {
-    G4MultiFunctionalDetector* detector =
+   /* G4MultiFunctionalDetector* detector =
     new G4MultiFunctionalDetector("naISensitiveDet");
     G4int depth = 2;
     G4VPrimitiveScorer* energyDepScorer = new G4PSEnergyDeposit("eDep",depth);
     detector->RegisterPrimitive(energyDepScorer);
     NaILogic->SetSensitiveDetector(detector);
     G4SDManager* SDmanager = G4SDManager::GetSDMpointer();
-    SDmanager->AddNewDetector(detector);
+    SDmanager->AddNewDetector(detector);*/
+    
+
+    NaISD* naISD = new NaISD("naISD", "eDep", 2);//konstruktor
+
+   G4SDManager* SDman = G4SDManager::GetSDMpointer();
+    SDman->AddNewDetector(naISD);//rejestracja w G4SDManager
+    NaILogic->SetSensitiveDetector(naISD);
 }
 

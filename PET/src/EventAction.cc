@@ -9,7 +9,7 @@
 #include "SteppingAction.hh"
 #include "G4SDManager.hh"
 #include "G4THitsMap.hh"
-
+#include "NaIHit.hh"
 
 EventAction::EventAction()
 {
@@ -39,12 +39,12 @@ void EventAction::EndOfEventAction(const G4Event* anEvent)
 
 
     G4SDManager* SDmanager = G4SDManager::GetSDMpointer();
-    G4int naIcollId = SDmanager->GetCollectionID("naISensitiveDet/eDep");
+    G4int naIcollId = SDmanager->GetCollectionID("naISD/eDep");
     //std::cout<<naIcollId << std::endl;
-    
+    NaIHitsCollection* naIHC = (NaIHitsCollection*)( hitsCollOfThisEvent->GetHC(naIcollId) );
 
 
-  G4THitsMap<G4double>* NaIHitsCollection = static_cast<G4THitsMap<G4double>*>( hitsCollOfThisEvent->GetHC(naIcollId));
+  //G4THitsMap<G4double>* NaIHitsCollection = static_cast<G4THitsMap<G4double>*>( hitsCollOfThisEvent->GetHC(naIcollId));
 
 
 /*  for ( auto it : *hitsMap->GetMap() ) {
@@ -52,18 +52,27 @@ void EventAction::EndOfEventAction(const G4Event* anEvent)
     std::cout <<*(it.first) << " " << *(it.second)<<std::endl;
   }*/
   
-  
+  /*
      std::map< G4int,G4double*>* NaIcolMap = NaIHitsCollection->GetMap();
     std::map< G4int,G4double*>::iterator itr;
     for (itr = NaIcolMap->begin(); itr != NaIcolMap->end(); itr++) 
     {
         std::cout << (itr->first) << " " << *(itr->second) << std::endl;
 
-    }
+    }*/
   
-      
+ 
+
+    G4int nrOfDetectors = naIHC->entries();
+    for(G4int i=0; i!=nrOfDetectors; i++)
+    {
+        G4int moduleIndex = (*naIHC)[i]->GetCopyNr();
+        G4double energyDep = (*naIHC)[i]->GetEdep();
+        G4double trackLength = (*naIHC)[i]->GetTrackLength();
+        std::cout << moduleIndex << " "<< energyDep << " " << trackLength << std::endl;
+    }
+     
 
 }
-
 
 
