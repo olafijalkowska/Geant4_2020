@@ -13,12 +13,15 @@
 
 EventAction::EventAction()
 {
-    output.open("Secondaries.txt");
+   // output.open("Secondaries.txt");
+    outputFile=OutputRoot::GetInstance();
+    outputFile->CreateFile("NaIDetOutput.root");
 }
  
 EventAction::~EventAction()
 {
-    output.close();
+    //output.close();
+    outputFile->SaveOutput();
 }
 
 
@@ -30,8 +33,8 @@ void EventAction::BeginOfEventAction(const G4Event* anEvent)
 
 void EventAction::EndOfEventAction(const G4Event* anEvent)
 {
-    output << SteppingAction::nrOfSec << std::endl;
-    SteppingAction::nrOfSec=0;
+    //output << SteppingAction::nrOfSec << std::endl;
+    //SteppingAction::nrOfSec=0;
 
     G4HCofThisEvent *hitsCollOfThisEvent = anEvent->GetHCofThisEvent();
     if(!hitsCollOfThisEvent)
@@ -62,14 +65,15 @@ void EventAction::EndOfEventAction(const G4Event* anEvent)
     }*/
   
  
-
+    int eventId = anEvent->GetEventID(); 
     G4int nrOfDetectors = naIHC->entries();
     for(G4int i=0; i!=nrOfDetectors; i++)
     {
         G4int moduleIndex = (*naIHC)[i]->GetCopyNr();
         G4double energyDep = (*naIHC)[i]->GetEdep();
         G4double trackLength = (*naIHC)[i]->GetTrackLength();
-        std::cout << moduleIndex << " "<< energyDep << " " << trackLength << std::endl;
+        outputFile->AddNaIHit(eventId, moduleIndex, energyDep, trackLength);
+        //std::cout << moduleIndex << " "<< energyDep << " " << trackLength << std::endl;
     }
      
 
